@@ -1,0 +1,197 @@
+name: release-thriftc-jar
+
+on:
+  push:
+    tags:
+      - 'thriftc-jar/v*'
+  workflow_dispatch:
+    inputs:
+      thrift_version:
+        description: 'Thrift version to build (e.g. 0.22.0)'
+        required: true
+        default: '0.22.0'
+
+permissions:
+  contents: read
+
+env:
+  ARTIFACT_ID: thriftc-jar
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      thrift-version: ${{ steps.parse.outputs.thrift_version }}
+      maven-version: ${{ steps.parse.outputs.maven_version }}
+      is-snapshot: ${{ steps.parse.outputs.is_snapshot }}
+    steps:
+      - name: parse version
+        id: parse
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # manual trigger -> SNAPSHOT for testing the publish pipeline
+            VERSION="${{ inputs.thrift_version }}"
+            echo "thrift_version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "maven_version=${VERSION}-SNAPSHOT" >> "$GITHUB_OUTPUT"
+            echo "is_snapshot=true" >> "$GITHUB_OUTPUT"
+          else
+            # tag trigger: thriftc-jar/v0.22.0 -> 0.22.0
+            VERSION="${GITHUB_REF_NAME#thriftc-jar/v}"
+            echo "thrift_version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "maven_version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "is_snapshot=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: resolve-version
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-latest
+            classifier: linux-x86_64
+            platform: linux/amd64
+          - os: ubuntu-latest
+            classifier: linux-aarch64
+            platform: linux/arm64
+          - os: macos-15-intel
+            classifier: darwin-x86_64
+          - os: macos-15
+            classifier: darwin-aarch64
+          - os: ubuntu-latest
+            classifier: windows-x86_64
+
+    runs-on: ${{ matrix.os }}
+    env:
+      THRIFT_VERSION: ${{ needs.resolve-version.outputs.thrift-version }}
+      MAVEN_VERSION: ${{ needs.resolve-version.outputs.maven-version }}
+      CDN: https://dlcdn.apache.org/thrift
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: set up docker buildx
+        if: startsWith(matrix.classifier, 'linux-')
+        uses: docker/setup-buildx-action@v3
+
+      - name: set up qemu
+        if: matrix.classifier == 'linux-aarch64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: build thriftc (linux)
+        if: startsWith(matrix.classifier, 'linux-')
+        run: |
+          mkdir -p thriftc-jar/target/binaries
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
+            --build-arg THRIFT_VERSION=${{ env.THRIFT_VERSION }} \
+            --output type=local,dest=./thriftc-jar/target/binaries/ \
+            thriftc-jar/builder/
+          mv thriftc-jar/target/binaries/thriftc \
+             thriftc-jar/target/binaries/${{ env.ARTIFACT_ID }}-${{ env.MAVEN_VERSION }}-${{ matrix.classifier }}.exe
+
+      - name: install deps (macos)
+        if: startsWith(matrix.classifier, 'darwin-')
+        run: brew install cmake bison flex boost openssl gnupg
+
+      - name: build thriftc (macos)
+        if: startsWith(matrix.classifier, 'darwin-')
+        run: |
+          SRC="thrift-${{ env.THRIFT_VERSION }}"
+          cd /tmp
+          curl -fSL "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/${SRC}.tar.gz" -O
+          bash "${GITHUB_WORKSPACE}/thriftc-jar/builder/verify-download.sh" \
+            "${GITHUB_WORKSPACE}/thriftc-jar/builder/KEYS" \
+            "${SRC}.tar.gz" \
+            "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/${SRC}.tar.gz.sha256" \
+            "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/${SRC}.tar.gz.asc"
+          tar -xzf "${SRC}.tar.gz"
+          cd "${SRC}"
+          cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_COMPILER=ON \
+            -DBUILD_LIBRARIES=OFF \
+            -DBUILD_TESTING=OFF \
+            -DBUILD_TUTORIALS=OFF \
+            .
+          make -j"$(sysctl -n hw.ncpu)" thrift-compiler
+          mkdir -p "${GITHUB_WORKSPACE}/thriftc-jar/target/binaries"
+          DEST="${GITHUB_WORKSPACE}/thriftc-jar/target/binaries/${{ env.ARTIFACT_ID }}-${{ env.MAVEN_VERSION }}-${{ matrix.classifier }}.exe"
+          cp compiler/cpp/bin/thrift "$DEST"
+          strip "$DEST"
+
+      - name: download thriftc (windows)
+        if: matrix.classifier == 'windows-x86_64'
+        run: |
+          mkdir -p thriftc-jar/target/binaries
+          DEST="thriftc-jar/target/binaries/${{ env.ARTIFACT_ID }}-${{ env.MAVEN_VERSION }}-${{ matrix.classifier }}.exe"
+          curl -fSL "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/thrift-${{ env.THRIFT_VERSION }}.exe" -o "$DEST"
+          bash thriftc-jar/builder/verify-download.sh \
+            thriftc-jar/builder/KEYS \
+            "$DEST" \
+            "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/thrift-${{ env.THRIFT_VERSION }}.exe.sha256" \
+            "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/thrift-${{ env.THRIFT_VERSION }}.exe.asc"
+
+      - name: verify binary
+        if: matrix.classifier != 'windows-x86_64'
+        run: |
+          BINARY="thriftc-jar/target/binaries/${{ env.ARTIFACT_ID }}-${{ env.MAVEN_VERSION }}-${{ matrix.classifier }}.exe"
+          chmod +x "$BINARY"
+          "$BINARY" --version
+
+      - name: upload binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: thriftc-${{ matrix.classifier }}
+          path: thriftc-jar/target/binaries/*.exe
+          retention-days: 1
+
+  publish:
+    needs: [resolve-version, build]
+    runs-on: ubuntu-latest
+    env:
+      MAVEN_VERSION: ${{ needs.resolve-version.outputs.maven-version }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: set up jdk
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_TOKEN
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: download all platform binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: thriftc-jar/target/binaries/
+          merge-multiple: true
+
+      - name: list binaries
+        run: ls -la thriftc-jar/target/binaries/
+
+      - name: set version
+        run: |
+          mvn versions:set \
+            -DnewVersion=${{ env.MAVEN_VERSION }} \
+            -DgenerateBackupPoms=false \
+            -f thriftc-jar/pom.xml
+
+      - name: maven deploy
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          mvn deploy \
+            -Plinux-x86_64,linux-aarch64,darwin-x86_64,darwin-aarch64,windows-x86_64 \
+            -f thriftc-jar/pom.xml
