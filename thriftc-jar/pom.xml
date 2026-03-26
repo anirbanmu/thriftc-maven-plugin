@@ -84,7 +84,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions><execution>
-                    <id>attach-binary</id>
+                    <id>attach-linux-x86_64</id>
                     <phase>package</phase>
                     <goals><goal>attach-artifact</goal></goals>
                     <configuration><artifacts><artifact>
@@ -102,7 +102,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions><execution>
-                    <id>attach-binary</id>
+                    <id>attach-linux-aarch64</id>
                     <phase>package</phase>
                     <goals><goal>attach-artifact</goal></goals>
                     <configuration><artifacts><artifact>
@@ -120,7 +120,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions><execution>
-                    <id>attach-binary</id>
+                    <id>attach-darwin-x86_64</id>
                     <phase>package</phase>
                     <goals><goal>attach-artifact</goal></goals>
                     <configuration><artifacts><artifact>
@@ -138,7 +138,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions><execution>
-                    <id>attach-binary</id>
+                    <id>attach-darwin-aarch64</id>
                     <phase>package</phase>
                     <goals><goal>attach-artifact</goal></goals>
                     <configuration><artifacts><artifact>
@@ -156,7 +156,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions><execution>
-                    <id>attach-binary</id>
+                    <id>attach-windows-x86_64</id>
                     <phase>package</phase>
                     <goals><goal>attach-artifact</goal></goals>
                     <configuration><artifacts><artifact>
