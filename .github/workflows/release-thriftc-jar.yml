@@ -100,6 +100,8 @@ jobs:
       - name: build thriftc (macos)
         if: startsWith(matrix.classifier, 'darwin-')
         run: |
+          # homebrew bison/flex must come before the ancient system versions
+          export PATH="$(brew --prefix bison)/bin:$(brew --prefix flex)/bin:$PATH"
           SRC="thrift-${{ env.THRIFT_VERSION }}"
           cd /tmp
           curl -fSL "${{ env.CDN }}/${{ env.THRIFT_VERSION }}/${SRC}.tar.gz" -O
