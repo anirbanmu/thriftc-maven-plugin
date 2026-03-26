@@ -51,7 +51,7 @@ jobs:
           - os: ubuntu-latest
             classifier: linux-x86_64
             platform: linux/amd64
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             classifier: linux-aarch64
             platform: linux/arm64
           - os: macos-15-intel
@@ -74,12 +74,6 @@ jobs:
       - name: set up docker buildx
         if: startsWith(matrix.classifier, 'linux-')
         uses: docker/setup-buildx-action@v3
-
-      - name: set up qemu
-        if: matrix.classifier == 'linux-aarch64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - name: build thriftc (linux)
         if: startsWith(matrix.classifier, 'linux-')
