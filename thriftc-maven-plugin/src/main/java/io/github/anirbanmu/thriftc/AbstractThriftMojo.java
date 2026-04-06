@@ -1,5 +1,7 @@
 package io.github.anirbanmu.thriftc;
 
+import javax.inject.Inject;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,7 +11,6 @@ import java.util.stream.Stream;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
@@ -37,7 +38,7 @@ abstract class AbstractThriftMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
-    @Component
+    @Inject
     protected RepositorySystem repoSystem;
 
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)

@@ -47,7 +47,7 @@ mv thriftc-jar/target/binaries/thriftc \
    "thriftc-jar/target/binaries/thriftc-jar-${MAVEN_VERSION}-${CLASSIFIER}.exe"
 
 echo "==> installing thriftc-jar into local repo"
-mvn install -P"${CLASSIFIER}" -Dgpg.skip=true -f thriftc-jar/pom.xml -q
+mvn install -P"${CLASSIFIER}" -Dgpg.skip=true -f thriftc-jar/pom.xml
 """
 
 [tasks.verify]
