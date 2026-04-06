@@ -46,6 +46,7 @@
         <maven-plugin-api.version>3.9.0</maven-plugin-api.version>
         <maven-plugin-tools.version>3.15.2</maven-plugin-tools.version>
         <maven-resolver.version>1.9.4</maven-resolver.version>
+        <it.thriftVersion>0.22.0-SNAPSHOT</it.thriftVersion>
     </properties>
 
     <dependencies>
@@ -141,6 +142,9 @@
                     <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
                     <settingsFile>src/it/settings.xml</settingsFile>
                     <postBuildHookScript>verify</postBuildHookScript>
+                    <properties>
+                        <it.thriftVersion>${it.thriftVersion}</it.thriftVersion>
+                    </properties>
                 </configuration>
                 <executions>
                     <execution>

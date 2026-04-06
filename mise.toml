@@ -1,0 +1,58 @@
+[tools]
+java = "temurin-25"
+maven = "3"
+
+[tasks.clean]
+description = "remove all build output"
+run = """
+rm -rf thriftc-jar/target thriftc-maven-plugin/target
+"""
+
+[tasks.build-thriftc]
+description = "docker-build thriftc binary and install into local maven repo (linux only)"
+depends = ["clean"]
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$(uname -s)" != "Linux" ]; then
+  echo "error: this task only supports linux" >&2
+  exit 1
+fi
+
+if ! command -v docker &>/dev/null; then
+  echo "error: docker is required but not found" >&2
+  exit 1
+fi
+
+ARCH=$(uname -m)
+case "$ARCH" in
+  x86_64|amd64)  ARCH=x86_64;  PLATFORM=linux/amd64 ;;
+  aarch64|arm64) ARCH=aarch64; PLATFORM=linux/arm64 ;;
+  *)             echo "error: unsupported arch: $ARCH" >&2; exit 1 ;;
+esac
+CLASSIFIER="linux-${ARCH}"
+
+MAVEN_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -f thriftc-jar/pom.xml)
+THRIFT_VERSION="${MAVEN_VERSION%-SNAPSHOT}"
+
+echo "==> building thriftc binary (${CLASSIFIER}, thrift ${THRIFT_VERSION})"
+mkdir -p thriftc-jar/target/binaries
+docker buildx build \
+  --platform "${PLATFORM}" \
+  --build-arg THRIFT_VERSION="${THRIFT_VERSION}" \
+  --output type=local,dest=./thriftc-jar/target/binaries/ \
+  thriftc-jar/builder/
+mv thriftc-jar/target/binaries/thriftc \
+   "thriftc-jar/target/binaries/thriftc-jar-${MAVEN_VERSION}-${CLASSIFIER}.exe"
+
+echo "==> installing thriftc-jar into local repo"
+mvn install -P"${CLASSIFIER}" -Dgpg.skip=true -f thriftc-jar/pom.xml -q
+"""
+
+[tasks.verify]
+description = "clean build of thriftc-jar + full plugin verify (unit + integration tests)"
+depends = ["build-thriftc"]
+run = """
+mvn verify -Dgpg.skip=true -f thriftc-maven-plugin/pom.xml
+"""

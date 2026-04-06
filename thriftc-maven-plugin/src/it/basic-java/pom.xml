@@ -21,6 +21,9 @@
                 <groupId>io.github.anirbanmu</groupId>
                 <artifactId>thriftc-maven-plugin</artifactId>
                 <version>@project.version@</version>
+                <configuration>
+                    <thriftVersion>@it.thriftVersion@</thriftVersion>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
