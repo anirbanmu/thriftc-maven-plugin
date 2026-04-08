@@ -1,3 +1,6 @@
 # maven build output
 **/target/
 
+# kiro IDE context
+.kiro/
+

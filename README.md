@@ -19,7 +19,7 @@ Supported platforms:
 
 Each binary is attached with a classifier and `.exe` type. The version tracks upstream Apache Thrift (e.g. `0.22.0`).
 
-### thriftc-maven-plugin *(planned)*
+### thriftc-maven-plugin
 
 A Maven plugin that automatically detects your OS/arch, resolves the correct `thriftc-jar` binary from Maven Central, and invokes it to compile `.thrift` files into generated source code. Requires Java 17+.
 
@@ -37,7 +37,7 @@ A Maven plugin that automatically detects your OS/arch, resolves the correct `th
 </dependency>
 ```
 
-### thriftc-maven-plugin (coming soon)
+### thriftc-maven-plugin
 
 ```xml
 <build>
@@ -82,14 +82,18 @@ Generated Java sources are automatically added to the compile (or test-compile) 
 
 ## Building
 
-Prerequisites: Java 25+, Maven 3+ (see `.tool-versions`).
+Prerequisites: Java 25+, Maven 3+ (see `mise.toml`).
 
 ```bash
+# Full build: thriftc-jar + plugin verify (requires Docker, Linux only)
+mise run verify
+
+# Or manually:
 # Build thriftc-jar (requires Docker for Linux targets)
 mvn package -f thriftc-jar/pom.xml -Plinux-x86_64
 
 # Build the plugin (requires thriftc-jar installed locally first)
-mvn verify -f thriftc-maven-plugin/pom.xml
+mvn verify -Dgpg.skip=true -f thriftc-maven-plugin/pom.xml
 ```
 
 ## License

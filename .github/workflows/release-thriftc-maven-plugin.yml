@@ -1,0 +1,92 @@
+name: release-thriftc-maven-plugin
+
+on:
+  push:
+    tags:
+      - 'thriftc-maven-plugin/v*'
+  workflow_dispatch:
+    inputs:
+      plugin_version:
+        description: 'Plugin version (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      plugin-version: ${{ steps.parse.outputs.plugin_version }}
+      is-snapshot: ${{ steps.parse.outputs.is_snapshot }}
+    steps:
+      - name: parse version
+        id: parse
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # manual trigger -> SNAPSHOT for testing the publish pipeline
+            VERSION="${{ inputs.plugin_version }}"
+            echo "plugin_version=${VERSION}-SNAPSHOT" >> "$GITHUB_OUTPUT"
+            echo "is_snapshot=true" >> "$GITHUB_OUTPUT"
+          else
+            # tag trigger: thriftc-maven-plugin/v1.0.0 -> 1.0.0
+            VERSION="${GITHUB_REF_NAME#thriftc-maven-plugin/v}"
+            echo "plugin_version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "is_snapshot=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    env:
+      PLUGIN_VERSION: ${{ needs.resolve-version.outputs.plugin-version }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: set up jdk
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_TOKEN
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: build and install thriftc-jar
+        run: |
+          # integration tests need the thriftc-jar binary in the local repo
+          MAVEN_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -f thriftc-jar/pom.xml)
+          THRIFT_VERSION="${MAVEN_VERSION%-SNAPSHOT}"
+
+          mkdir -p thriftc-jar/target/binaries
+          docker buildx build \
+            --platform linux/amd64 \
+            --build-arg THRIFT_VERSION="${THRIFT_VERSION}" \
+            --output type=local,dest=./thriftc-jar/target/binaries/ \
+            thriftc-jar/builder/
+          mv thriftc-jar/target/binaries/thriftc \
+             "thriftc-jar/target/binaries/thriftc-jar-${MAVEN_VERSION}-linux-x86_64.exe"
+
+          mvn install -Plinux-x86_64 -Dgpg.skip=true -f thriftc-jar/pom.xml
+
+      - name: set plugin version
+        run: |
+          mvn versions:set \
+            -DnewVersion=${{ env.PLUGIN_VERSION }} \
+            -DgenerateBackupPoms=false \
+            -f thriftc-maven-plugin/pom.xml
+
+      - name: maven deploy
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: mvn deploy -f thriftc-maven-plugin/pom.xml
