@@ -62,7 +62,11 @@ abstract class AbstractThriftMojo extends AbstractMojo {
             throw new MojoExecutionException(e.getMessage(), e);
         }
 
+        getLog().info("detected platform: " + platform.classifier());
+
         File binary = BinaryResolver.resolve(platform, thriftVersion, repoSystem, repoSession, remoteRepositories);
+
+        getLog().info("resolved thriftc " + thriftVersion + " binary: " + binary.getAbsolutePath());
 
         File sourceDir = getThriftSourceDir();
         if (!sourceDir.isDirectory()) {
@@ -88,6 +92,9 @@ abstract class AbstractThriftMojo extends AbstractMojo {
         File outputDir = getOutputDirectory();
         outputDir.mkdirs();
 
+        Path basePath = sourceDir.toPath();
+        getLog().info("compiling " + thriftFiles.size() + " .thrift file(s) with --gen " + generator);
+
         CompilerInvoker invoker = new CompilerInvoker(
                 binary, generator, outputDir,
                 // maven sets unset list parameters to null rather than empty
@@ -95,6 +102,7 @@ abstract class AbstractThriftMojo extends AbstractMojo {
                 recursive, timeoutSeconds, getLog());
 
         for (File thriftFile : thriftFiles) {
+            getLog().info("  " + basePath.relativize(thriftFile.toPath()));
             invoker.compile(thriftFile);
         }
 
