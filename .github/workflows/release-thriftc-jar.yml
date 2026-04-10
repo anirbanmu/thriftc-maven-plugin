@@ -108,6 +108,7 @@ jobs:
           cd "${SRC}"
           cmake \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             -DBUILD_COMPILER=ON \
             -DBUILD_LIBRARIES=OFF \
             -DBUILD_TESTING=OFF \

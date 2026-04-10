@@ -35,6 +35,7 @@ WORKDIR /tmp/thrift-${THRIFT_VERSION}
 
 RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DCMAKE_CXX_FLAGS="-static-libstdc++ -static-libgcc" \
     -DCMAKE_C_FLAGS="-static-libgcc" \
     -DBUILD_COMPILER=ON \
