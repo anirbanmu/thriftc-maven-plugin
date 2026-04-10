@@ -1,43 +1,16 @@
 # thriftc-maven-plugin
 
-A zero-install [Apache Thrift](https://thrift.apache.org/) compiler experience for Maven. Add the plugin to your `pom.xml` and compile `.thrift` files — no manual thrift installation required.
+[![thriftc-maven-plugin build](https://github.com/anirbanmu/thriftc-maven-plugin/actions/workflows/build-thriftc-maven-plugin.yml/badge.svg)](https://github.com/anirbanmu/thriftc-maven-plugin/actions/workflows/build-thriftc-maven-plugin.yml)
+[![thriftc-jar build](https://github.com/anirbanmu/thriftc-maven-plugin/actions/workflows/build-thriftc-jar.yml/badge.svg)](https://github.com/anirbanmu/thriftc-maven-plugin/actions/workflows/build-thriftc-jar.yml)
+[![Maven Central: thriftc-maven-plugin](https://img.shields.io/maven-central/v/io.github.anirbanmu/thriftc-maven-plugin?label=thriftc-maven-plugin)](https://central.sonatype.com/artifact/io.github.anirbanmu/thriftc-maven-plugin)
+[![Maven Central: thriftc-jar](https://img.shields.io/maven-central/v/io.github.anirbanmu/thriftc-jar?label=thriftc-jar)](https://central.sonatype.com/artifact/io.github.anirbanmu/thriftc-jar)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Modules
+A self-contained [Apache Thrift](https://thrift.apache.org/) compiler for Maven. Add the plugin to your `pom.xml` and compile `.thrift` files.
 
-### thriftc-jar
-
-Pre-compiled thrift compiler binaries published to Maven Central as classified artifacts under `io.github.anirbanmu:thriftc-jar`.
-
-Supported platforms:
-| Classifier | OS | Arch |
-|---|---|---|
-| `linux-x86_64` | Linux | x86-64 |
-| `linux-aarch64` | Linux | ARM64 |
-| `darwin-x86_64` | macOS | x86-64 (Intel) |
-| `darwin-aarch64` | macOS | ARM64 (Apple Silicon) |
-| `windows-x86_64` | Windows | x86-64 |
-
-Each binary is attached with a classifier and `.exe` type. The version tracks upstream Apache Thrift (e.g. `0.22.0`).
-
-### thriftc-maven-plugin
-
-A Maven plugin that automatically detects your OS/arch, resolves the correct `thriftc-jar` binary from Maven Central, and invokes it to compile `.thrift` files into generated source code. Requires Java 17+.
+The plugin detects your OS and architecture, resolves the correct pre-compiled thrift compiler binary from Maven Central, and invokes it to generate source code. Java 17+.
 
 ## Usage
-
-### thriftc-jar (direct artifact resolution)
-
-```xml
-<dependency>
-    <groupId>io.github.anirbanmu</groupId>
-    <artifactId>thriftc-jar</artifactId>
-    <version>0.22.0</version>
-    <classifier>linux-x86_64</classifier>
-    <type>exe</type>
-</dependency>
-```
-
-### thriftc-maven-plugin
 
 ```xml
 <build>
@@ -64,7 +37,11 @@ A Maven plugin that automatically detects your OS/arch, resolves the correct `th
 
 Place your `.thrift` files in `src/main/thrift/` (and `src/test/thrift/` for test sources). The plugin generates code into `target/generated-sources/thrift/` during `generate-sources` and `target/generated-test-sources/thrift/` during `generate-test-sources`. Subdirectories are scanned recursively.
 
-#### Configuration (`compile` goal defaults shown)
+Generated Java sources are automatically added to the compile (or test-compile) source roots. For non-Java generators, the output is written but not added to Maven's source roots.
+
+### Configuration
+
+`compile` goal defaults shown:
 
 | Parameter | Default | Description |
 |---|---|---|
@@ -78,7 +55,22 @@ Place your `.thrift` files in `src/main/thrift/` (and `src/test/thrift/` for tes
 
 The `compile-test` goal uses the same parameters but defaults `thriftSourceDir` to `src/test/thrift` and `outputDirectory` to `target/generated-test-sources/thrift`.
 
-Generated Java sources are automatically added to the compile (or test-compile) source roots. For non-Java generators, the output is written but not added to Maven's source roots.
+## How it works
+
+The repo contains two modules:
+
+**thriftc-maven-plugin** — the Maven plugin described above. It detects your platform, resolves the matching `thriftc-jar` binary via Maven's artifact resolution APIs, and invokes it to compile `.thrift` files.
+
+**thriftc-jar** — pre-compiled thrift compiler binaries published to Maven Central as classified artifacts under `io.github.anirbanmu:thriftc-jar`. The version tracks upstream Apache Thrift (e.g. `0.22.0`).
+
+Supported platforms:
+| Classifier | OS | Arch |
+|---|---|---|
+| `linux-x86_64` | Linux | x86-64 |
+| `linux-aarch64` | Linux | ARM64 |
+| `darwin-x86_64` | macOS | x86-64 (Intel) |
+| `darwin-aarch64` | macOS | ARM64 (Apple Silicon) |
+| `windows-x86_64` | Windows | x86-64 |
 
 ## Building
 
@@ -95,6 +87,16 @@ mvn package -f thriftc-jar/pom.xml -Plinux-x86_64
 # Build the plugin (requires thriftc-jar installed locally first)
 mvn verify -Dgpg.skip=true -f thriftc-maven-plugin/pom.xml
 ```
+
+## See also
+
+Inspired by:
+
+- [maven-thrift-plugin](https://github.com/dtrott/maven-thrift-plugin) and [thrift-maven-plugin](https://central.sonatype.com/artifact/org.apache.thrift/thrift-maven-plugin)
+- [mvn-thrift-compiler](https://github.com/ccascone/mvn-thrift-compiler)
+- [protobuf-maven-plugin](https://github.com/xolstice/protobuf-maven-plugin) (xolstice) and [protobuf-maven-plugin](https://github.com/ascopes/protobuf-maven-plugin) (ascopes)
+- [protoc-jar](https://github.com/os72/protoc-jar) and [protoc-jar-maven-plugin](https://github.com/os72/protoc-jar-maven-plugin)
+- [com.google.protobuf:protoc](https://central.sonatype.com/artifact/com.google.protobuf/protoc)
 
 ## License
 
