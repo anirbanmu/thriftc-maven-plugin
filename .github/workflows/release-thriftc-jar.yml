@@ -12,7 +12,7 @@ on:
         default: '0.22.0'
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   ARTIFACT_ID: thriftc-jar
@@ -191,3 +191,13 @@ jobs:
           mvn deploy \
             -Plinux-x86_64,linux-aarch64,darwin-x86_64,darwin-aarch64,windows-x86_64 \
             -f thriftc-jar/pom.xml
+
+      - name: create github release
+        if: needs.resolve-version.outputs.is-snapshot == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "thriftc-jar v${{ env.MAVEN_VERSION }}" \
+            --generate-notes \
+            --notes "Maven Central: https://central.sonatype.com/artifact/io.github.anirbanmu/thriftc-jar/${{ env.MAVEN_VERSION }}"
