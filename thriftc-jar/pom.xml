@@ -19,6 +19,12 @@
         <license>
             <name>MIT License</name>
             <url>https://opensource.org/licenses/MIT</url>
+            <comments>applies to the build scripts and packaging in this repository</comments>
+        </license>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <comments>applies to the pre-compiled apache thrift compiler binaries</comments>
         </license>
     </licenses>
 
@@ -165,6 +171,31 @@
                         <type>exe</type>
                         <classifier>windows-x86_64</classifier>
                     </artifact></artifacts></configuration>
+                </execution></executions>
+            </plugin></plugins></build>
+        </profile>
+
+        <profile>
+            <id>attach-thrift-license</id>
+            <build><plugins><plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions><execution>
+                    <id>attach-thrift-license</id>
+                    <phase>package</phase>
+                    <goals><goal>attach-artifact</goal></goals>
+                    <configuration><artifacts>
+                        <artifact>
+                            <file>${project.build.directory}/binaries/THRIFT-LICENSE</file>
+                            <type>txt</type>
+                            <classifier>license</classifier>
+                        </artifact>
+                        <artifact>
+                            <file>${project.build.directory}/binaries/THRIFT-NOTICE</file>
+                            <type>txt</type>
+                            <classifier>notice</classifier>
+                        </artifact>
+                    </artifacts></configuration>
                 </execution></executions>
             </plugin></plugins></build>
         </profile>
