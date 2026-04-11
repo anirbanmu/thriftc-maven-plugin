@@ -176,6 +176,19 @@ jobs:
       - name: list binaries
         run: ls -la thriftc-jar/target/binaries/
 
+      - name: extract upstream license files
+        env:
+          THRIFT_VERSION: ${{ needs.resolve-version.outputs.thrift-version }}
+          CDN: https://dlcdn.apache.org/thrift
+        run: |
+          cd /tmp
+          curl -fSL "${CDN}/${THRIFT_VERSION}/thrift-${THRIFT_VERSION}.tar.gz" -O
+          tar -xzf "thrift-${THRIFT_VERSION}.tar.gz" \
+            "thrift-${THRIFT_VERSION}/LICENSE" \
+            "thrift-${THRIFT_VERSION}/NOTICE"
+          cp "thrift-${THRIFT_VERSION}/LICENSE" "${GITHUB_WORKSPACE}/thriftc-jar/target/binaries/THRIFT-LICENSE"
+          cp "thrift-${THRIFT_VERSION}/NOTICE" "${GITHUB_WORKSPACE}/thriftc-jar/target/binaries/THRIFT-NOTICE"
+
       - name: set version
         run: |
           mvn versions:set \
@@ -190,7 +203,7 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           mvn deploy \
-            -Plinux-x86_64,linux-aarch64,darwin-x86_64,darwin-aarch64,windows-x86_64 \
+            -Plinux-x86_64,linux-aarch64,darwin-x86_64,darwin-aarch64,windows-x86_64,attach-thrift-license \
             -f thriftc-jar/pom.xml
 
       - name: create github release
