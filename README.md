@@ -55,6 +55,29 @@ Generated Java sources are automatically added to the compile (or test-compile) 
 
 The `compile-test` goal uses the same parameters but defaults `thriftSourceDir` to `src/test/thrift` and `outputDirectory` to `target/generated-test-sources/thrift`.
 
+### Offline builds
+
+The plugin resolves the thrift compiler binary at execution time, so `mvn dependency:go-offline` alone won't pre-fetch it. Use the `resolve` goal to download the binary into your local Maven repository before going offline:
+
+```bash
+mvn thriftc:resolve
+mvn -o compile
+```
+
+Or bind it to an early phase so it runs automatically:
+
+```xml
+<execution>
+    <id>resolve</id>
+    <phase>initialize</phase>
+    <goals>
+        <goal>resolve</goal>
+    </goals>
+</execution>
+```
+
+The `resolve` goal accepts the same `thriftVersion` parameter as the compile goals.
+
 ## How it works
 
 The repo contains two modules:
