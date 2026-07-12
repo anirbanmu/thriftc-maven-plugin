@@ -19,7 +19,7 @@ import org.eclipse.aether.repository.RemoteRepository;
 @Mojo(name = "resolve")
 public class ResolveMojo extends AbstractMojo {
 
-    @Parameter(defaultValue = "0.23.0", property = "thriftc.thriftVersion")
+    @Parameter(defaultValue = "0.24.0", property = "thriftc.thriftVersion")
     private String thriftVersion;
 
     @Inject

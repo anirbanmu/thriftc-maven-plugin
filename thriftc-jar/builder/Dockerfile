@@ -2,7 +2,7 @@
 # -static-libstdc++ -static-libgcc ensures the binary only dynamically links libc.
 FROM ubuntu:20.04 AS builder
 
-ARG THRIFT_VERSION=0.23.0
+ARG THRIFT_VERSION=0.24.0
 ARG BISON_VERSION=3.8.2
 ARG DEBIAN_FRONTEND=noninteractive
 
