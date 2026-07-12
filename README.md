@@ -18,7 +18,7 @@ The plugin detects your OS and architecture, resolves the correct pre-compiled t
         <plugin>
             <groupId>io.github.anirbanmu</groupId>
             <artifactId>thriftc-maven-plugin</artifactId>
-            <version>1.0.0</version>
+            <version>1.2.0</version>
             <configuration>
                 <thriftVersion>0.24.0</thriftVersion>
             </configuration>
