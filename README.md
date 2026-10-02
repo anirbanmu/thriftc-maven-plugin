@@ -18,9 +18,9 @@ The plugin detects your OS and architecture, resolves the correct pre-compiled t
         <plugin>
             <groupId>io.github.anirbanmu</groupId>
             <artifactId>thriftc-maven-plugin</artifactId>
-            <version>1.2.0</version>
+            <version>1.3.0</version>
             <configuration>
-                <thriftVersion>0.24.0</thriftVersion>
+                <thriftVersion>0.25.0</thriftVersion>
             </configuration>
             <executions>
                 <execution>
@@ -45,7 +45,7 @@ Generated Java sources are automatically added to the compile (or test-compile) 
 
 | Parameter | Default | Description |
 |---|---|---|
-| `thriftVersion` | `0.24.0` | Version of the thrift compiler binary to resolve |
+| `thriftVersion` | `0.25.0` | Version of the thrift compiler binary to resolve |
 | `generator` | `java` | Thrift language generator (passed to `--gen`) |
 | `thriftSourceDir` | `src/main/thrift` | Directory containing `.thrift` files |
 | `outputDirectory` | `target/generated-sources/thrift` | Output directory for generated code |
@@ -84,7 +84,7 @@ The repo contains two modules:
 
 **thriftc-maven-plugin** — the Maven plugin described above. It detects your platform, resolves the matching `thriftc-jar` binary via Maven's artifact resolution APIs, and invokes it to compile `.thrift` files.
 
-**thriftc-jar** — pre-compiled thrift compiler binaries published to Maven Central as classified artifacts under `io.github.anirbanmu:thriftc-jar`. The version tracks upstream Apache Thrift (e.g. `0.24.0`).
+**thriftc-jar** — pre-compiled thrift compiler binaries published to Maven Central as classified artifacts under `io.github.anirbanmu:thriftc-jar`. The version tracks upstream Apache Thrift (e.g. `0.25.0`).
 
 Supported platforms:
 | Classifier | OS | Arch |
