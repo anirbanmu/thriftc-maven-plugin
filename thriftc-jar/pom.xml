@@ -6,7 +6,7 @@
 
     <groupId>io.github.anirbanmu</groupId>
     <artifactId>thriftc-jar</artifactId>
-    <version>0.24.0-SNAPSHOT</version>
+    <version>0.25.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>thriftc-jar</name>

@@ -20,7 +20,7 @@ import org.eclipse.aether.repository.RemoteRepository;
 
 abstract class AbstractThriftMojo extends AbstractMojo {
 
-    @Parameter(defaultValue = "0.24.0", property = "thriftc.thriftVersion")
+    @Parameter(defaultValue = "0.25.0", property = "thriftc.thriftVersion")
     protected String thriftVersion;
 
     @Parameter(defaultValue = "java", property = "thriftc.generator")
