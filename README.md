@@ -39,6 +39,18 @@ Place your `.thrift` files in `src/main/thrift/` (and `src/test/thrift/` for tes
 
 Generated Java sources are automatically added to the compile (or test-compile) source roots. For non-Java generators, the output is written but not added to Maven's source roots.
 
+### Java runtime
+
+Generated Java code requires Apache Thrift's Java runtime. Add `libthrift` to projects that compile or run generated Java, using the same version as `thriftVersion`:
+
+```xml
+<dependency>
+    <groupId>org.apache.thrift</groupId>
+    <artifactId>libthrift</artifactId>
+    <version>0.25.0</version>
+</dependency>
+```
+
 ### Configuration
 
 `compile` goal defaults shown:
@@ -94,6 +106,10 @@ Supported platforms:
 | `darwin-x86_64` | macOS | x86-64 (Intel) |
 | `darwin-aarch64` | macOS | ARM64 (Apple Silicon) |
 | `windows-x86_64` | Windows | x86-64 |
+
+### Binary provenance
+
+This is an independent project, not an Apache Thrift project. The `thriftc-jar` release workflow verifies upstream Apache Thrift downloads with SHA-256 and GPG signatures before building or packaging the compiler binaries. The plugin resolves the matching published binary through Maven using your normal repository configuration and caches it in your local Maven repository.
 
 ## Building
 
